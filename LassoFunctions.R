@@ -128,7 +128,7 @@ fitLASSOstandardized_seq <- function(Xtilde, Ytilde, lambda_seq = NULL, n_lambda
               proceeding as if the values were not supplied")
     }
   } else {
-    lambda_max <- max((1 / n) * crossprod(Xtilde, Ytilde))
+    lambda_max <- max(abs((1 / n) * crossprod(Xtilde, Ytilde)))
     lambda_seq <- exp(seq(log(lambda_max), log(0.01), length = n_lambda))
   }
   
@@ -149,7 +149,7 @@ fitLASSOstandardized_seq <- function(Xtilde, Ytilde, lambda_seq = NULL, n_lambda
   
   for (i in 1:length(lambda_seq)) {
     
-    currentfit <- fitLASSOstandardized(Xtilde, Ytilde, lambda_seq[i], beta = beta_current, eps = eps)
+    currentfit <- fitLASSOstandardized(Xtilde, Ytilde, lambda_seq[i], beta_start = beta_current, eps = eps)
     
     beta_mat[, i] <- currentfit$beta
     fmin_vec[i] <- currentfit$fmin
