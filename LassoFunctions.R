@@ -107,24 +107,55 @@ fitLASSOstandardized <- function(Xtilde, Ytilde, lambda, beta_start = NULL, eps 
 #             is only used when the tuning sequence is not supplied by the user
 # eps - precision level for convergence assessment, default 0.001
 fitLASSOstandardized_seq <- function(Xtilde, Ytilde, lambda_seq = NULL, n_lambda = 60, eps = 0.001){
-  # [ToDo] Check that n is the same between Xtilde and Ytilde
- 
+  n <- nrow(Xtilde)
+  p <- ncol(Xtilde)
+  
+  #[ToDo]  Check that n is the same between Xtilde and Ytilde
+  if (n != length(Ytilde)) {
+    stop("n has to be the same between Xtilde and Ytilde")
+  }
   # [ToDo] Check for the user-supplied lambda-seq (see below)
+  
   # If lambda_seq is supplied, only keep values that are >= 0,
   # and make sure the values are sorted from largest to smallest.
   # If none of the supplied values satisfy the requirement,
   # print the warning message and proceed as if the values were not supplied.
   
+  if (!is.null(lambda_seq)) {
+    lambda_seq <- sort(lambda_seq[lambda_seq >= 0], decreasing = TRUE)
+    if (length(lambda_seq) == 0) {
+      message("None of the supplied values of lambdas satisfy the requirement; 
+              proceeding as if the values were not supplied")
+    }
+  } else {
+    lambda_max <- max((1 / n) * crossprod(Xtilde, Ytilde))
+    lambda_seq <- exp(seq(log(lambda_max), log(0.01), length = n_lambda))
+  }
   
   # If lambda_seq is not supplied, calculate lambda_max 
   # (the minimal value of lambda that gives zero solution),
-  # and create a sequence of length n_lambda as
-  lambda_seq = exp(seq(log(lambda_max), log(0.01), length = n_lambda))
+  # and create a sequence of length n_lambda
   
   # [ToDo] Apply fitLASSOstandardized going from largest to smallest lambda 
   # (make sure supplied eps is carried over). 
   # Use warm starts strategy discussed in class for setting the starting values.
   
+  # Initialize
+  beta_mat <- matrix(NA, nrow = p, ncol = length(lambda_seq))
+  fmin_vec <- numeric(length(lambda_seq))
+  
+  # Warmstart
+  beta_current <- rep(0, p) 
+  
+  for (i in 1:length(lambda_seq)) {
+    
+    currentfit <- fitLASSOstandardized(Xtilde, Ytilde, lambda_seq[i], beta = beta_current, eps = eps)
+    
+    beta_mat[, i] <- currentfit$beta
+    fmin_vec[i] <- currentfit$fmin
+    
+    beta_current <- currentfit$beta
+  }
   # Return output
   # lambda_seq - the actual sequence of tuning parameters used
   # beta_mat - p x length(lambda_seq) matrix of corresponding solutions at each lambda value
