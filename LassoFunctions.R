@@ -3,9 +3,15 @@
 # Y - n x 1 response vector
 standardizeXY <- function(X, Y){
   # [ToDo] Center Y
-  
+  Ymean <- mean(Y)
+  Ytilde <- Y - mean(Y)
   # [ToDo] Center and scale X
+  Xmeans <- colMeans(X)
+  Xcentered <- X - matrix(colMeans(X), nrow(X), ncol(X), byrow = TRUE)
+  Xnorms <- colSums(Xcentered ^ 2) / nrow(X)
+  Xtilde <- Xcentered %*% diag(1 / sqrt(Xnorms))
   
+  weights <- sqrt(Xnorms)
   
   # Return:
   # Xtilde - centered and appropriately scaled X
