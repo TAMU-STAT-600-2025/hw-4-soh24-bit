@@ -34,7 +34,10 @@ soft <- function(a, lambda){
 # lamdba - tuning parameter
 # beta - value of beta at which to evaluate the function
 lasso <- function(Xtilde, Ytilde, beta, lambda){
-  
+  # Get the row of X
+  n <- nrow(Xtilde)
+  # Calculate objective
+  fobj <- (2*n)^(-1) * sum((Ytilde - Xtilde %*% beta)^2) + lambda * sum(abs(beta))
 }
 
 # [ToDo] Fit LASSO on standardized data for a given lambda
@@ -44,19 +47,52 @@ lasso <- function(Xtilde, Ytilde, beta, lambda){
 # beta_start - p vector, an optional starting point for coordinate-descent algorithm
 # eps - precision level for convergence assessment, default 0.001
 fitLASSOstandardized <- function(Xtilde, Ytilde, lambda, beta_start = NULL, eps = 0.001){
+  
+  n <- nrow(Xtilde)
+  p <- ncol(Xtilde)
+  
   #[ToDo]  Check that n is the same between Xtilde and Ytilde
-  
+  if (n != length(Ytilde)) {
+    stop("n has to be the same between Xtilde and Ytilde")
+  }
   #[ToDo]  Check that lambda is non-negative
-  
+  if (lambda < 0) {
+    stop("Lambda must be non-negative")
+  }
   #[ToDo]  Check for starting point beta_start. 
   # If none supplied, initialize with a vector of zeros.
   # If supplied, check for compatibility with Xtilde in terms of p
-  
+  if (is.null(beta_start)) {
+    beta_start <- rep(0, p)
+  } else if (length(beta_start) != p) {
+    stop("p should match between Xtilde and beta")
+  }
   #[ToDo]  Coordinate-descent implementation. 
   # Stop when the difference between objective functions is less than eps for the first time.
   # For example, if you have 3 iterations with objectives 3, 1, 0.99999,
   # your should return fmin = 0.99999, and not have another iteration
   
+  # Initilize beta, fobj
+  beta <- beta_start
+  fcurrent <- lasso(Xtilde, Ytilde, beta, lambda)
+  
+  while(TRUE) {
+    # Assign previous objective value to compare
+    fprevious <- fcurrent
+    
+    for (i in 1:p) {
+      beta[i] <- soft((1 / n) * crossprod(Xtilde[, i], Ytilde - Xtilde[, -i] %*% beta[-i]), lambda)
+    }
+    
+    fcurrent <- lasso(Xtilde, Ytilde, beta, lambda)
+    
+    # Test if the difference between fprevious and fcurrent is lower than eps
+    if (abs(fprevious - fcurrent) < eps) {
+      fmin <- fcurrent
+      break
+    }
+    
+  }
   # Return 
   # beta - the solution (a vector)
   # fmin - optimal function value (value of objective at beta, scalar)
