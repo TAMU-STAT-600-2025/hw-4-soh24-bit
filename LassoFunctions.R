@@ -149,7 +149,8 @@ fitLASSOstandardized_seq <- function(Xtilde, Ytilde, lambda_seq = NULL, n_lambda
   
   for (i in 1:length(lambda_seq)) {
     
-    currentfit <- fitLASSOstandardized(Xtilde, Ytilde, lambda_seq[i], beta_start = beta_current, eps = eps)
+    currentfit <- fitLASSOstandardized(Xtilde, Ytilde, lambda_seq[i], 
+                                       beta_start = beta_current, eps = eps)
     
     beta_mat[, i] <- currentfit$beta
     fmin_vec[i] <- currentfit$fmin
@@ -171,13 +172,30 @@ fitLASSOstandardized_seq <- function(Xtilde, Ytilde, lambda_seq = NULL, n_lambda
 # eps - precision level for convergence assessment, default 0.001
 fitLASSO <- function(X ,Y, lambda_seq = NULL, n_lambda = 60, eps = 0.001){
   # [ToDo] Center and standardize X,Y based on standardizeXY function
- 
+  standardized <- standardizeXY(X, Y)
+  Xtilde <- standardized$Xtilde
+  Ytilde <- standardized$Ytilde
   # [ToDo] Fit Lasso on a sequence of values using fitLASSOstandardized_seq
   # (make sure the parameters carry over)
- 
+  fitlasso <- fitLASSOstandardized_seq(Xtilde, Ytilde, lambda_seq = lambda_seq, 
+                                       n_lambda = n_lambda, eps = eps)
+  
+  # Returns actual lambda sequence used
+  lambda_seq <- fitlasso$lambda_seq
+  
   # [ToDo] Perform back scaling and centering to get original intercept and coefficient vector
   # for each lambda
   
+  # Backscale the X
+  beta_mat <- fitlasso$beta_mat
+  weights <- standardized$weights
+  beta_mat <- beta_mat / weights
+  
+  meanY <- standardized$Ymean
+  meansX <- standardized$Xmeans
+  
+  # Backscale the intercept
+  beta0_vec <- rep(mean(Y), ncol(beta_mat)) - colSums(beta_mat * meansX)
   # Return output
   # lambda_seq - the actual sequence of tuning parameters used
   # beta_mat - p x length(lambda_seq) matrix of corresponding solutions at each lambda value (original data without center or scale)
