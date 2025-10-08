@@ -216,6 +216,7 @@ cvLASSO <- function(X ,Y, lambda_seq = NULL, n_lambda = 60, k = 5, fold_ids = NU
   # [ToDo] Fit Lasso on original data using fitLASSO
   fit <- fitLASSO(X, Y, lambda_seq = lambda_seq, n_lambda = n_lambda, eps = eps)
   
+  # Output from the whole data
   lambda_seq <- fit$lambda_seq
   beta_mat <- fit$beta_mat
   beta0_vec <- fit$beta0_vec
