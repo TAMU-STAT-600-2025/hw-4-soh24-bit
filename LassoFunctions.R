@@ -239,6 +239,8 @@ cvLASSO <- function(X ,Y, lambda_seq = NULL, n_lambda = 60, k = 5, fold_ids = NU
     Y <- Y[shuffled_index, ]
     
     fold_seq <- cut(seq(1,nrow(X)),breaks = k,labels = FALSE)
+  } else{
+    fold_seq <- fold_ids
   }
   # [ToDo] Calculate LASSO on each fold using fitLASSO,
   # and perform any additional calculations needed for CV(lambda) and SE_CV(lambda)
@@ -246,16 +248,16 @@ cvLASSO <- function(X ,Y, lambda_seq = NULL, n_lambda = 60, k = 5, fold_ids = NU
   # Initialize
   cvm = rep(NA, n_lambda) # want to have CV(lambda)
   cvse = rep(NA, n_lambda) # want to have SE_CV(lambda)
-  cv_folds = matrix(NA, k, nlambda) # fold-specific errors
+  cv_folds = matrix(NA, k, n_lambda) # fold-specific errors
   
   for (fold in 1:k) {
-    fold_ids <- which(fold_seq == fold, arr.ind = TRUE)
+    test_index <- which(fold_seq == fold, arr.ind = TRUE)
     
-    Xtrain <- X[-fold_ids, ]
-    Ytrain <- Y[-fold_ids]
+    Xtrain <- X[-test_index, ]
+    Ytrain <- Y[-test_index]
     
-    Xtest <- X[fold_ids, ]
-    Ytest <- Y[fold_ids]
+    Xtest <- X[test_index, ]
+    Ytest <- Y[test_index]
     
     fitKfold <- fitLASSO(Xtrain, Ytrain, lambda_seq = lambda_seq, n_lambda = n_lambda, eps = eps)
     Xbeta <- Xtest %*% fitKfold$beta_mat
@@ -287,6 +289,6 @@ cvLASSO <- function(X ,Y, lambda_seq = NULL, n_lambda = 60, k = 5, fold_ids = NU
   # lambda_1se - selected lambda based on 1SE rule
   # cvm - values of CV(lambda) for each lambda
   # cvse - values of SE_CV(lambda) for each lambda
-  return(list(lambda_seq = lambda_seq, beta_mat = beta_mat, beta0_vec = beta0_vec, fold_ids = fold_ids, lambda_min = lambda_min, lambda_1se = lambda_1se, cvm = cvm, cvse = cvse))
+  return(list(lambda_seq = lambda_seq, beta_mat = beta_mat, beta0_vec = beta0_vec, fold_ids = fold_seq, lambda_min = lambda_min, lambda_1se = lambda_1se, cvm = cvm, cvse = cvse))
 }
 
