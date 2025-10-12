@@ -121,15 +121,25 @@ fitLASSOstandardized_seq <- function(Xtilde, Ytilde, lambda_seq = NULL, n_lambda
   # If none of the supplied values satisfy the requirement,
   # print the warning message and proceed as if the values were not supplied.
   
-  if (!is.null(lambda_seq)) {
+  # A switch for generating lambda sequence
+  switch <- FALSE
+  
+  if (is.null(lambda_seq)) {
+    switch <- TRUE
+  } else {
     lambda_seq <- sort(lambda_seq[lambda_seq >= 0], decreasing = TRUE)
+    
     if (length(lambda_seq) == 0) {
       message("None of the supplied values of lambdas satisfy the requirement; 
               proceeding as if the values were not supplied")
+      switch <- TRUE
     }
-  } else {
+  }
+  
+  if (switch) {
     lambda_max <- max(abs((1 / n) * crossprod(Xtilde, Ytilde)))
-    lambda_seq <- exp(seq(log(lambda_max), log(0.01), length = n_lambda))
+    lambda_min <- 0.0001 * lambda_max
+    lambda_seq <- exp(seq(log(lambda_max), log(lambda_min), length = n_lambda))
   }
   
   # If lambda_seq is not supplied, calculate lambda_max 
