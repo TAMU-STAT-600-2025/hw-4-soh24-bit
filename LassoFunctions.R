@@ -224,7 +224,11 @@ cvLASSO <- function(X ,Y, lambda_seq = NULL, n_lambda = 60, k = 5, fold_ids = NU
   # [ToDo] If fold_ids is NULL, split the data randomly into k folds.
   # If fold_ids is not NULL, split the data according to supplied fold_ids.
   if (is.null(fold_ids)) {
-    fold_ids <- sample(k, size = nrow(X), replace = TRUE)
+    shuffled_index <- sample(nrow(X))
+    X <- X[shuffled_index, ]
+    Y <- Y[shuffled_index, ]
+    
+    fold_seq <- cut(seq(1,nrow(X)),breaks = k,labels = FALSE)
   }
   # [ToDo] Calculate LASSO on each fold using fitLASSO,
   # and perform any additional calculations needed for CV(lambda) and SE_CV(lambda)
@@ -232,14 +236,16 @@ cvLASSO <- function(X ,Y, lambda_seq = NULL, n_lambda = 60, k = 5, fold_ids = NU
   # Initialize
   cvm = rep(NA, n_lambda) # want to have CV(lambda)
   cvse = rep(NA, n_lambda) # want to have SE_CV(lambda)
-  cv_folds = matrix(NA, K, nlambda) # fold-specific errors
+  cv_folds = matrix(NA, k, nlambda) # fold-specific errors
   
   for (fold in 1:k) {
-    Xtrain <- X[fold_ids != fold, ]
-    Ytrain <- Y[fold_ids != fold]
+    fold_ids <- which(fold_seq == fold, arr.ind = TRUE)
     
-    Xtest <- X[fold_ids == fold, ]
-    Ytest <- Y[fold_ids == fold]
+    Xtrain <- X[-fold_ids, ]
+    Ytrain <- Y[-fold_ids]
+    
+    Xtest <- X[fold_ids, ]
+    Ytest <- Y[fold_ids]
     
     fitKfold <- fitLASSO(Xtrain, Ytrain, lambda_seq = lambda_seq, n_lambda = n_lambda, eps = eps)
     Xbeta <- Xtest %*% fitKfold$beta_mat
@@ -253,7 +259,7 @@ cvLASSO <- function(X ,Y, lambda_seq = NULL, n_lambda = 60, k = 5, fold_ids = NU
   cvse <- apply(cv_folds, 2, \(cv_i) {sd(cv_i) / sqrt(k)})
   
   # [ToDo] Find lambda_min
-  lambda_min <- lambda_seq[cvm == min(cvm)]
+  lambda_min <- lambda_seq[which.min(cvm)]
   # [ToDo] Find lambda_1SE
   min_cvm <- min(cvm)
   min_se <- cvse[which.min(cvm)]
