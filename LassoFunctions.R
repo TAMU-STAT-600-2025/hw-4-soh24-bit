@@ -248,7 +248,7 @@ cvLASSO <- function(X ,Y, lambda_seq = NULL, n_lambda = 60, k = 5, fold_ids = NU
   if (is.null(fold_ids)) {
     shuffled_index <- sample(nrow(X))
     X <- X[shuffled_index, ]
-    Y <- Y[shuffled_index, ]
+    Y <- Y[shuffled_index]
     
     fold_seq <- cut(seq(1,nrow(X)),breaks = k,labels = FALSE)
   } else{
