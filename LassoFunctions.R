@@ -76,12 +76,24 @@ fitLASSOstandardized <- function(Xtilde, Ytilde, lambda, beta_start = NULL, eps 
   beta <- beta_start
   fcurrent <- lasso(Xtilde, Ytilde, beta, lambda)
   
+  # For efficiency, initialize Ytilde - Xtilde %*% beta or the residual
+  resid <- Ytilde - Xtilde %*% beta
+  
   while(TRUE) {
     # Assign previous objective value to compare
     fprevious <- fcurrent
     
     for (i in 1:p) {
-      beta[i] <- soft((1 / n) * crossprod(Xtilde[, i], Ytilde - Xtilde[, -i] %*% beta[-i]), lambda)
+      beta_old_i <- beta[i]
+      # the term below is equivalent to calculating partial residual, but we avoid calculating
+      # Ytilde - Xtilde[, -i] %*% beta[-i] in the loop
+      a <- (1 / n) * crossprod(Xtilde[, i], resid) + beta_old_i
+      beta[i] <- soft(a, lambda)
+      
+      # Update the residual with updated beta
+      if (beta[i] != beta_old_i) {
+        resid <- resid - Xtilde[, i] * (beta[i] - beta_old_i)
+      }
     }
     
     fcurrent <- lasso(Xtilde, Ytilde, beta, lambda)
