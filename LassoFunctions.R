@@ -245,12 +245,9 @@ cvLASSO <- function(X ,Y, lambda_seq = NULL, n_lambda = 60, k = 5, fold_ids = NU
   
   # [ToDo] If fold_ids is NULL, split the data randomly into k folds.
   # If fold_ids is not NULL, split the data according to supplied fold_ids.
+  n <- nrow(X)
   if (is.null(fold_ids)) {
-    shuffled_index <- sample(nrow(X))
-    X <- X[shuffled_index, ]
-    Y <- Y[shuffled_index]
-    
-    fold_seq <- cut(seq(1,nrow(X)),breaks = k,labels = FALSE)
+    fold_seq <- sample(rep(1:k, length.out = n))
   } else{
     fold_seq <- fold_ids
   }
@@ -258,9 +255,9 @@ cvLASSO <- function(X ,Y, lambda_seq = NULL, n_lambda = 60, k = 5, fold_ids = NU
   # and perform any additional calculations needed for CV(lambda) and SE_CV(lambda)
   
   # Initialize
-  cvm = rep(NA, n_lambda) # want to have CV(lambda)
-  cvse = rep(NA, n_lambda) # want to have SE_CV(lambda)
-  cv_folds = matrix(NA, k, n_lambda) # fold-specific errors
+  cvm = rep(NA, length(lambda_seq)) # want to have CV(lambda)
+  cvse = rep(NA, length(lambda_seq)) # want to have SE_CV(lambda)
+  cv_folds = matrix(NA, k, length(lambda_seq)) # fold-specific errors
   
   for (fold in 1:k) {
     test_index <- which(fold_seq == fold, arr.ind = TRUE)
