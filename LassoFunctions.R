@@ -152,8 +152,8 @@ fitLASSOstandardized_seq <- function(Xtilde, Ytilde, lambda_seq = NULL, n_lambda
   
   if (switch) {
     lambda_max <- max(abs((1 / n) * crossprod(Xtilde, Ytilde)))
-    lambda_min <- 0.0001 * lambda_max
-    lambda_seq <- exp(seq(log(lambda_max), log(lambda_min), length = n_lambda))
+    # lambda_min <- 0.0001 * lambda_max
+    lambda_seq <- exp(seq(log(lambda_max), log(0.01), length = n_lambda)) # mine used to be lambda_min 
   }
   
   # If lambda_seq is not supplied, calculate lambda_max 
