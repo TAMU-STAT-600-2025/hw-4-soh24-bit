@@ -37,7 +37,9 @@ lasso <- function(Xtilde, Ytilde, beta, lambda){
   # Get the row of X
   n <- nrow(Xtilde)
   # Calculate objective
-  fobj <- (2*n)^(-1) * sum((Ytilde - Xtilde %*% beta)^2) + lambda * sum(abs(beta))
+  fobj <- (2*n) ^ (-1) * sum((Ytilde - Xtilde %*% beta)^2) + lambda * sum(abs(beta))
+  
+  return(fobj)
 }
 
 # [ToDo] Fit LASSO on standardized data for a given lambda
